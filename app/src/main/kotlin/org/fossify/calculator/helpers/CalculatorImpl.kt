@@ -245,58 +245,56 @@ class CalculatorImpl(
             secondValue = parts.getOrNull(1)?.toDouble() ?: secondValue
         }
 
-        if (lastOperation != "") {
-            val sign = getSign(lastOperation)
-            val formattedBaseValue = baseValue.format().removeGroupSeparator()
-            val formatterSecondValue = secondValue.format().removeGroupSeparator()
-            val expression = "$formattedBaseValue$sign$formatterSecondValue"
-                .replace("√", "sqrt")
-                .replace("×", "*")
-                .replace("÷", "/")
+        val sign = getSign(lastOperation)
+        val formattedBaseValue = baseValue.format().removeGroupSeparator()
+        val formatterSecondValue = secondValue.format().removeGroupSeparator()
+        val expression = "$formattedBaseValue$sign$formatterSecondValue"
+            .replace("√", "sqrt")
+            .replace("×", "*")
+            .replace("÷", "/")
 
-            try {
-                if (sign == "÷" && secondValue == 0.0) {
-                    context.toast(R.string.formula_divide_by_zero_error)
-                    return
-                }
-
-                // handle percents manually, it doesn't seem to be possible via net.objecthunter:exp4j. "%" is used only for modulo there
-                // handle cases like 10%200 here
-                val result = if (sign == "%") {
-                    val second = (secondValue / 100f).format().removeGroupSeparator()
-                    ExpressionBuilder("$formattedBaseValue*$second").build().evaluate()
-                } else {
-                    // avoid Double rounding errors at expressions like 5250,74 + 14,98
-                    if (sign == "+" || sign == "-") {
-                        val first = BigDecimal.valueOf(baseValue)
-                        val second = BigDecimal.valueOf(secondValue)
-                        val bigDecimalResult = when (sign) {
-                            "-" -> first.minus(second)
-                            else -> first.plus(second)
-                        }
-                        bigDecimalResult.toDouble()
-                    } else {
-                        ExpressionBuilder(expression).build().evaluate()
-                    }
-                }
-
-                if (result.isInfinite() || result.isNaN()) {
-                    context.toast(org.fossify.commons.R.string.unknown_error_occurred)
-                    return
-                }
-
-                showNewResult(result.format())
-                val newFormula = "${baseValue.format()}$sign${secondValue.format()}"
-                HistoryHelper(context).insertOrUpdateHistoryEntry(
-                    History(id = null, formula = newFormula, result = result.format(), timestamp = System.currentTimeMillis())
-                )
-                showNewFormula(newFormula)
-
-                inputDisplayedFormula = result.format()
-                baseValue = result
-            } catch (e: Exception) {
-                context.toast(org.fossify.commons.R.string.unknown_error_occurred)
+        try {
+            if (sign == "÷" && secondValue == 0.0) {
+                context.toast(R.string.formula_divide_by_zero_error)
+                return
             }
+
+            // handle percents manually, it doesn't seem to be possible via net.objecthunter:exp4j. "%" is used only for modulo there
+            // handle cases like 10%200 here
+            val result = if (sign == "%") {
+                val second = (secondValue / 100f).format().removeGroupSeparator()
+                ExpressionBuilder("$formattedBaseValue*$second").build().evaluate()
+            } else {
+                // avoid Double rounding errors at expressions like 5250,74 + 14,98
+                if (sign == "+" || sign == "-") {
+                    val first = BigDecimal.valueOf(baseValue)
+                    val second = BigDecimal.valueOf(secondValue)
+                    val bigDecimalResult = when (sign) {
+                        "-" -> first.minus(second)
+                        else -> first.plus(second)
+                    }
+                    bigDecimalResult.toDouble()
+                } else {
+                    ExpressionBuilder(expression).build().evaluate()
+                }
+            }
+
+            if (result.isInfinite() || result.isNaN()) {
+                context.toast(org.fossify.commons.R.string.unknown_error_occurred)
+                return
+            }
+
+            showNewResult(result.format())
+            val newFormula = "${baseValue.format()}$sign${secondValue.format()}"
+            HistoryHelper(context).insertOrUpdateHistoryEntry(
+                History(id = null, formula = newFormula, result = result.format(), timestamp = System.currentTimeMillis())
+            )
+            showNewFormula(newFormula)
+
+            inputDisplayedFormula = result.format()
+            baseValue = result
+        } catch (e: Exception) {
+            context.toast(org.fossify.commons.R.string.unknown_error_occurred)
         }
     }
 
