@@ -399,7 +399,6 @@ class CalculatorImpl(
             if (lastOperation != "") {
                 handleReset()
             }
-            lastOperation = EQUALS
         }
 
         lastKey = DIGIT
