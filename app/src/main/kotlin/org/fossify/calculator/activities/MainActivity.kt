@@ -50,13 +50,13 @@ class MainActivity : SimpleActivity(), Calculator {
         calc = CalculatorImpl(this, applicationContext, decimalSeparator, groupingSeparator, saveCalculatorState)
 
         // Binding Operator Buttons
-        binding.btnPlus?.setOnClickOperation(PLUS)
-        binding.btnMinus?.setOnClickOperation(MINUS)
-        binding.btnMultiply?.setOnClickOperation(MULTIPLY)
-        binding.btnDivide?.setOnClickOperation(DIVIDE)
-        binding.btnPercent?.setOnClickOperation(PERCENT)
-        binding.btnPower?.setOnClickOperation(POWER)
-        binding.btnRoot?.setOnClickOperation(ROOT)
+        binding.btnPlus?.setOnClickOperation(TokenType.PLUS)
+        binding.btnMinus?.setOnClickOperation(TokenType.MINUS)
+        binding.btnMultiply?.setOnClickOperation(TokenType.MULTIPLY)
+        binding.btnDivide?.setOnClickOperation(TokenType.DIVIDE)
+        binding.btnPercent?.setOnClickOperation(TokenType.PERCENT)
+        binding.btnPower?.setOnClickOperation(TokenType.POWER)
+        binding.btnRoot?.setOnClickOperation(TokenType.ROOT)
         binding.btnMinus?.setOnLongClickListener { calc.turnToNegative() }
         binding.btnClear?.setVibratingOnClickListener { calc.handleClear() }
         binding.btnClear?.setOnLongClickListener {
@@ -66,7 +66,7 @@ class MainActivity : SimpleActivity(), Calculator {
         binding.btnEquals?.setVibratingOnClickListener { calc.handleEquals() }
 
         // Binding Numpad Buttons
-        getButtonIds().forEach {
+        getNumpadButtonIds().forEach {
             it?.setVibratingOnClickListener { view ->
                 calc.numpadClicked(view.id)
             }
@@ -79,7 +79,6 @@ class MainActivity : SimpleActivity(), Calculator {
         storeStateVariables()
         binding.calculatorHolder?.let { updateViewColors(it, getProperTextColor()) }
         setupDecimalSeparator()
-        checkAppOnSDCard()
     }
 
     override fun onResume() {
@@ -104,11 +103,11 @@ class MainActivity : SimpleActivity(), Calculator {
                 it?.background = ResourcesCompat.getDrawable(resources, org.fossify.commons.R.drawable.pill_background, theme)
                 it?.background?.alpha = MEDIUM_ALPHA_INT
             }
+        }
 
-            arrayOf(btn0, btn1, btn2, btn3, btn4, btn5, btn6, btn7, btn8, btn9).forEach {
-                it?.background = ResourcesCompat.getDrawable(resources, org.fossify.commons.R.drawable.pill_background, theme)
-                it?.background?.alpha = LOWER_ALPHA_INT
-            }
+        getNumpadButtonIds().forEach {
+            it?.background = ResourcesCompat.getDrawable(resources, org.fossify.commons.R.drawable.pill_background, theme)
+            it?.background?.alpha = LOWER_ALPHA_INT
         }
     }
 
@@ -212,7 +211,7 @@ class MainActivity : SimpleActivity(), Calculator {
         )
     }
 
-    private fun getButtonIds() = binding.run {
+    private fun getNumpadButtonIds() = binding.run {
         arrayOf(btnDecimal, btn0, btn1, btn2, btn3, btn4, btn5, btn6, btn7, btn8, btn9)
     }
 
@@ -258,9 +257,9 @@ class MainActivity : SimpleActivity(), Calculator {
         }
     }
 
-    private fun View.setOnClickOperation(operation: String) {
+    private fun View.setOnClickOperation(tokenType: TokenType) {
         setVibratingOnClickListener {
-            calc.handleOperation(operation)
+            calc.handleOperation(tokenType)
         }
     }
 }

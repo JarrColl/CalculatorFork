@@ -3,6 +3,7 @@ package org.fossify.calculator.helpers
 import android.content.Context
 import com.fossify.calculator.R
 import net.objecthunter.exp4j.ExpressionBuilder
+import org.fossify.calculator.helpers.parsing.Parser
 import org.fossify.calculator.models.History
 import org.fossify.commons.extensions.showErrorToast
 import org.fossify.commons.extensions.toast
@@ -24,14 +25,16 @@ class CalculatorImpl(
     private var baseValue = 0.0
     private var secondValue = 0.0
     private var inputDisplayedFormula = "0"
-    private var lastKey = ""
-    private var lastOperation = ""
+    private var lastKey = TokenType.NULL
+    private var lastOperation = TokenType.NULL
     private val operations = listOf("+", "-", "×", "÷", "^", "%", "√")
     private val operationsRegex = "[-+×÷^%√]".toPattern()
     private val numbersRegex = "[^0-9,.]".toRegex()
     private val formatter = NumberFormatHelper(
         decimalSeparator = decimalSeparator, groupingSeparator = groupingSeparator
     )
+
+    private val Parser = Parser()
 
     init {
         if (stateInstance != "") {
@@ -70,7 +73,7 @@ class CalculatorImpl(
             }
         }
 
-        lastKey = DECIMAL
+        lastKey = TokenType.DECIMAL
         showNewResult(inputDisplayedFormula)
     }
 
@@ -90,7 +93,7 @@ class CalculatorImpl(
         }
     }
 
-    fun handleOperation(operation: String) {
+    fun handleOperation(operation: TokenType) {
         if (inputDisplayedFormula == Double.NaN.toString()) {
             inputDisplayedFormula = "0"
         }
@@ -99,8 +102,8 @@ class CalculatorImpl(
             inputDisplayedFormula = "0"
         }
 
-        if (operation == ROOT && inputDisplayedFormula == "0") {
-            if (lastKey != DIGIT) {
+        if (operation == TokenType.ROOT && inputDisplayedFormula == "0") {
+            if (lastKey != TokenType.DIGIT) {
                 inputDisplayedFormula = "1√"
             }
         }
@@ -115,19 +118,20 @@ class CalculatorImpl(
             inputDisplayedFormula += getSign(operation)
         }
 
-        if (lastKey == DIGIT || lastKey == DECIMAL) {
-            if (lastOperation != "" && operation == PERCENT) {
-                handlePercent()
+        if (lastKey == TokenType.DIGIT || lastKey == TokenType.DECIMAL) {
+            if (lastOperation != TokenType.NULL && operation == TokenType.PERCENT) {
+                inputDisplayedFormula += getSign(operation)
+//                handlePercent()
             } else {
                 // split to multiple lines just to see when does the crash happen
                 secondValue = when (operation) {
-                    PLUS -> getSecondValue()
-                    MINUS -> getSecondValue()
-                    MULTIPLY -> getSecondValue()
-                    DIVIDE -> getSecondValue()
-                    ROOT -> getSecondValue()
-                    POWER -> getSecondValue()
-                    PERCENT -> getSecondValue()
+                    TokenType.PLUS -> getSecondValue()
+                    TokenType.MINUS -> getSecondValue()
+                    TokenType.MULTIPLY -> getSecondValue()
+                    TokenType.DIVIDE -> getSecondValue()
+                    TokenType.ROOT -> getSecondValue()
+                    TokenType.POWER -> getSecondValue()
+                    TokenType.PERCENT -> getSecondValue()
                     else -> getSecondValue()
                 }
 
@@ -142,8 +146,8 @@ class CalculatorImpl(
         }
 
         if (getSecondValue() == 0.0 && inputDisplayedFormula.contains("÷")) {
-            lastKey = DIVIDE
-            lastOperation = DIVIDE
+            lastKey = TokenType.DIVIDE
+            lastOperation = TokenType.DIVIDE
         } else {
             lastKey = operation
             lastOperation = operation
@@ -174,34 +178,41 @@ class CalculatorImpl(
     // handle percents manually, it doesn't seem to be possible via net.objecthunter:exp4j. "%" is used only for modulo there
     // handle cases like 10+200% here
     private fun handlePercent() {
-        var result = calculatePercentage(baseValue, getSecondValue(), lastOperation)
-        if (result.isInfinite() || result.isNaN()) {
-            result = 0.0
-        }
+//        var result = calculatePercentage(baseValue, getSecondValue(), lastOperation)
+//        if (result.isInfinite() || result.isNaN()) {
+//            result = 0.0
+//        }
+//
+//        showNewFormula("${baseValue.format()}${getSign(lastOperation)}${getSecondValue().format()}%")
+//        inputDisplayedFormula = result.format()
+//        showNewResult(result.format())
+//        baseValue = result
+    }
 
-        showNewFormula("${baseValue.format()}${getSign(lastOperation)}${getSecondValue().format()}%")
-        inputDisplayedFormula = result.format()
-        showNewResult(result.format())
-        baseValue = result
+    private fun doubleToString(double: Double): String {
+        return double.toString().trimEnd('0').trimEnd('.')
     }
 
     fun handleEquals() {
-        if (lastKey == EQUALS) {
-            calculateResult()
-        }
+        showNewResult(doubleToString(Parser.calculate(inputDisplayedFormula)))
+        showNewFormula(inputDisplayedFormula)
 
-        if (lastKey != DIGIT && lastKey != DECIMAL) {
-            return
-        }
-
-        secondValue = getSecondValue()
-        calculateResult()
-        if ((lastOperation == DIVIDE || lastOperation == PERCENT) && secondValue == 0.0) {
-            lastKey = DIGIT
-            return
-        }
-
-        lastKey = EQUALS
+//        if (lastKey == TokenType.EQUALS) {
+//            calculateResult()
+//        }
+//
+//        if (lastKey != TokenType.DIGIT && lastKey != TokenType.DECIMAL) {
+//            return
+//        }
+//
+//        secondValue = getSecondValue()
+//        calculateResult()
+//        if ((lastOperation == TokenType.DIVIDE || lastOperation == TokenType.PERCENT) && secondValue == 0.0) {
+//            lastKey = TokenType.DIGIT
+//            return
+//        }
+//
+//        lastKey = TokenType.EQUALS
     }
 
     private fun getSecondValue(): Double {
@@ -221,11 +232,11 @@ class CalculatorImpl(
     }
 
     private fun calculateResult() {
-        if (lastOperation == ROOT && inputDisplayedFormula.startsWith("√")) {
+        if (lastOperation == TokenType.ROOT && inputDisplayedFormula.startsWith("√")) {
             baseValue = 1.0
         }
 
-        if (lastKey != EQUALS) {
+        if (lastKey != TokenType.EQUALS) {
             val valueToCheck = inputDisplayedFormula.trimStart('-').removeGroupSeparator()
             val parts = valueToCheck.split(operationsRegex).filter { it != "" }
             if (parts.isEmpty()) {
@@ -245,7 +256,7 @@ class CalculatorImpl(
             secondValue = parts.getOrNull(1)?.toDouble() ?: secondValue
         }
 
-        if (lastOperation != "") {
+        if (lastOperation != TokenType.NULL) {
             val sign = getSign(lastOperation)
             val formattedBaseValue = baseValue.format().removeGroupSeparator()
             val formatterSecondValue = secondValue.format().removeGroupSeparator()
@@ -300,37 +311,6 @@ class CalculatorImpl(
         }
     }
 
-    private fun calculatePercentage(baseValue: Double, secondValue: Double, sign: String): Double {
-        return when (sign) {
-            MULTIPLY -> {
-                val partial = 100 / secondValue
-                baseValue / partial
-            }
-
-            DIVIDE -> {
-                val partial = 100 / secondValue
-                baseValue * partial
-            }
-
-            PLUS -> {
-                val partial = baseValue / (100 / secondValue)
-                baseValue.plus(partial)
-            }
-
-            MINUS -> {
-                val partial = baseValue / (100 / secondValue)
-                baseValue.minus(partial)
-            }
-
-            PERCENT -> {
-                val partial = (baseValue % secondValue) / 100
-                partial
-            }
-
-            else -> baseValue / (100 * secondValue)
-        }
-    }
-
     private fun showNewResult(value: String) {
         currentResult = value
         callback!!.showNewResult(value, context)
@@ -347,16 +327,16 @@ class CalculatorImpl(
         var newValue = inputDisplayedFormula.dropLast(1)
         if (newValue == "" || newValue == "0") {
             newValue = "0"
-            lastKey = CLEAR
+            lastKey = TokenType.CLEAR
         } else {
-            if (operations.contains(lastDeletedValue) || lastKey == EQUALS) {
-                lastOperation = ""
+            if (operations.contains(lastDeletedValue) || lastKey == TokenType.EQUALS) {
+                lastOperation = TokenType.NULL
             }
             val lastValue = newValue.last().toString()
             lastKey = when {
-                operations.contains(lastValue) -> CLEAR
-                lastValue == decimalSeparator -> DECIMAL
-                else -> DIGIT
+                operations.contains(lastValue) -> TokenType.CLEAR
+                lastValue == decimalSeparator -> TokenType.DECIMAL
+                else -> TokenType.DIGIT
             }
         }
 
@@ -376,17 +356,17 @@ class CalculatorImpl(
     private fun resetValues() {
         baseValue = 0.0
         secondValue = 0.0
-        lastKey = ""
-        lastOperation = ""
+        lastKey = TokenType.NULL
+        lastOperation = TokenType.NULL
     }
 
-    private fun getSign(lastOperation: String) = when (lastOperation) {
-        MINUS -> "-"
-        MULTIPLY -> "×"
-        DIVIDE -> "÷"
-        PERCENT -> "%"
-        POWER -> "^"
-        ROOT -> "√"
+    private fun getSign(lastOperation: TokenType) = when (lastOperation) {
+        TokenType.MINUS -> "-"
+        TokenType.MULTIPLY -> "×"
+        TokenType.DIVIDE -> "÷"
+        TokenType.PERCENT -> "%"
+        TokenType.POWER -> "^"
+        TokenType.ROOT -> "√"
         else -> "+"
     }
 
@@ -395,13 +375,13 @@ class CalculatorImpl(
             inputDisplayedFormula = ""
         }
 
-        if (lastKey == EQUALS) {
-            if (lastOperation != "") {
+        if (lastKey == TokenType.EQUALS) {
+            if (lastOperation != TokenType.NULL) {
                 handleReset()
             }
         }
 
-        lastKey = DIGIT
+        lastKey = TokenType.DIGIT
 
         when (id) {
             R.id.btn_decimal -> decimalClicked()
@@ -456,8 +436,8 @@ class CalculatorImpl(
         val jsonObject = JSONTokener(json).nextValue() as JSONObject
         currentResult = jsonObject.getString(RES)
         previousCalculation = jsonObject.getString(PREVIOUS_CALCULATION)
-        lastKey = jsonObject.getString(LAST_KEY)
-        lastOperation = jsonObject.getString(LAST_OPERATION)
+        lastKey = TokenType.valueOf(jsonObject.getString(LAST_KEY))
+        lastOperation = TokenType.valueOf(jsonObject.getString(LAST_OPERATION))
         baseValue = jsonObject.getDouble(BASE_VALUE)
         secondValue = jsonObject.getDouble(SECOND_VALUE)
         inputDisplayedFormula = jsonObject.getString(INPUT_DISPLAYED_FORMULA)
