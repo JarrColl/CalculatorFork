@@ -14,7 +14,6 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import org.fossify.calculator.databases.CalculatorDatabase
 import org.fossify.calculator.helpers.Config
-import org.fossify.calculator.helpers.MyWidgetProvider
 import org.fossify.calculator.interfaces.CalculatorDao
 import org.fossify.commons.extensions.*
 
@@ -33,18 +32,6 @@ fun Context.updateViewColors(viewGroup: ViewGroup, textColor: Int) {
                 is ViewGroup -> updateViewColors(it, textColor)
             }
         }
-}
-
-fun Context.updateWidgets() {
-    val widgetIDs = AppWidgetManager.getInstance(applicationContext)?.getAppWidgetIds(ComponentName(applicationContext, MyWidgetProvider::class.java))
-        ?: return
-    if (widgetIDs.isNotEmpty()) {
-        Intent(applicationContext, MyWidgetProvider::class.java).apply {
-            action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-            putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, widgetIDs)
-            sendBroadcast(this)
-        }
-    }
 }
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)

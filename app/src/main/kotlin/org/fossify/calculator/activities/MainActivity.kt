@@ -14,7 +14,6 @@ import org.fossify.calculator.databases.CalculatorDatabase
 import org.fossify.calculator.dialogs.HistoryDialog
 import org.fossify.calculator.extensions.config
 import org.fossify.calculator.extensions.updateViewColors
-import org.fossify.calculator.extensions.updateWidgets
 import org.fossify.calculator.helpers.*
 import org.fossify.commons.extensions.*
 import org.fossify.commons.helpers.APP_ICON_IDS
@@ -49,6 +48,8 @@ class MainActivity : SimpleActivity(), Calculator {
         }
 
         calc = CalculatorImpl(this, applicationContext, decimalSeparator, groupingSeparator, saveCalculatorState)
+
+        // Binding Operator Buttons
         binding.btnPlus?.setOnClickOperation(PLUS)
         binding.btnMinus?.setOnClickOperation(MINUS)
         binding.btnMultiply?.setOnClickOperation(MULTIPLY)
@@ -62,14 +63,15 @@ class MainActivity : SimpleActivity(), Calculator {
             calc.handleReset()
             true
         }
+        binding.btnEquals?.setVibratingOnClickListener { calc.handleEquals() }
 
+        // Binding Numpad Buttons
         getButtonIds().forEach {
             it?.setVibratingOnClickListener { view ->
                 calc.numpadClicked(view.id)
             }
         }
 
-        binding.btnEquals?.setVibratingOnClickListener { calc.handleEquals() }
         binding.formula?.setOnLongClickListener { copyToClipboard(false) }
         binding.result?.setOnLongClickListener { copyToClipboard(true) }
         AutofitHelper.create(binding.result)
@@ -93,7 +95,6 @@ class MainActivity : SimpleActivity(), Calculator {
 
         if (storedUseCommaAsDecimalMark != config.useCommaAsDecimalMark) {
             setupDecimalSeparator()
-            updateWidgets()
         }
 
         vibrateOnButtonPress = config.vibrateOnButtonPress

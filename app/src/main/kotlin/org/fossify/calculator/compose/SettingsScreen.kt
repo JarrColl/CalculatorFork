@@ -23,7 +23,6 @@ import org.fossify.commons.helpers.isTiramisuPlus
 internal fun SettingsScreen(
     goBack: () -> Unit,
     customizeColors: () -> Unit,
-    customizeWidgetColors: () -> Unit,
     preventPhoneFromSleeping: Boolean,
     onPreventPhoneFromSleeping: (Boolean) -> Unit,
     vibrateOnButtonPressFlow: Boolean,
@@ -55,10 +54,6 @@ internal fun SettingsScreen(
                     }
                 },
                 preferenceLabelColor = MaterialTheme.colorScheme.onSurface
-            )
-            SettingsPreferenceComponent(
-                label = stringResource(id = org.fossify.commons.R.string.customize_widget_colors),
-                doOnPreferenceClick = customizeWidgetColors
             )
         }
         HorizontalDivider(color = divider_grey)
@@ -117,7 +112,6 @@ private fun SettingsScreenPreview(
         SettingsScreen(
             goBack = {},
             customizeColors = {},
-            customizeWidgetColors = {},
             preventPhoneFromSleeping = false,
             onPreventPhoneFromSleeping = {},
             vibrateOnButtonPressFlow = false,

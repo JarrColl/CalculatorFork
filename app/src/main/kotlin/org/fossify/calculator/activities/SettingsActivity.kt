@@ -15,7 +15,6 @@ import org.fossify.calculator.compose.SettingsScreen
 import org.fossify.calculator.extensions.calculatorDB
 import org.fossify.calculator.extensions.config
 import org.fossify.calculator.extensions.launchChangeAppLanguageIntent
-import org.fossify.calculator.extensions.updateWidgets
 import org.fossify.commons.activities.CustomizationActivity
 import org.fossify.commons.compose.alert_dialog.rememberAlertDialogState
 import org.fossify.commons.compose.extensions.enableEdgeToEdgeSimple
@@ -60,7 +59,6 @@ class SettingsActivity : AppCompatActivity() {
                     displayLanguage = displayLanguage,
                     goBack = ::finish,
                     customizeColors = ::handleCustomizeColorsClick,
-                    customizeWidgetColors = ::setupCustomizeWidgetColors,
                     preventPhoneFromSleeping = preventPhoneFromSleeping,
                     onPreventPhoneFromSleeping = preferences::preventPhoneFromSleeping::set,
                     vibrateOnButtonPressFlow = vibrateOnButtonPressFlow,
@@ -77,7 +75,6 @@ class SettingsActivity : AppCompatActivity() {
                     useCommaAsDecimalMarkFlow = useCommaAsDecimalMarkFlow,
                     onUseCommaAsDecimalMarkFlow = { isChecked ->
                         preferences.useCommaAsDecimalMark = isChecked
-                        updateWidgets()
                         ensureBackgroundThread {
                             applicationContext.calculatorDB.deleteHistory()
                         }
@@ -102,13 +99,6 @@ class SettingsActivity : AppCompatActivity() {
         Intent(applicationContext, CustomizationActivity::class.java).apply {
             putExtra(APP_ICON_IDS, getAppIconIds())
             putExtra(APP_LAUNCHER_NAME, getAppLauncherName())
-            startActivity(this)
-        }
-    }
-
-    private fun setupCustomizeWidgetColors() {
-        Intent(this, WidgetConfigureActivity::class.java).apply {
-            putExtra(IS_CUSTOMIZING_COLORS, true)
             startActivity(this)
         }
     }

@@ -4,7 +4,7 @@
   <CurrentIssues>
     <ID>CyclomaticComplexMethod:CalculatorImpl.kt$CalculatorImpl$fun handleOperation(operation: String)</ID>
     <ID>CyclomaticComplexMethod:CalculatorImpl.kt$CalculatorImpl$private fun calculateResult()</ID>
-    <ID>CyclomaticComplexMethod:MyWidgetProvider.kt$MyWidgetProvider$private fun myAction(action: String, context: Context)</ID>
+    <ID>CyclomaticComplexMethod:MyfidgetProvider.kt$MyWidgetProvider$private fun myAction(action: String, context: Context)</ID>
     <ID>EmptyFunctionBlock:WidgetConfigureActivity.kt$WidgetConfigureActivity.&lt;no name provided&gt;${}</ID>
     <ID>ForEachOnRange:Context.kt$(0 until cnt).map { viewGroup.getChildAt(it) }</ID>
     <ID>FunctionNaming:SettingsScreen.kt$@Composable internal fun SettingsScreen( goBack: () -&gt; Unit, customizeColors: () -&gt; Unit, customizeWidgetColors: () -&gt; Unit, preventPhoneFromSleeping: Boolean, onPreventPhoneFromSleeping: (Boolean) -&gt; Unit, vibrateOnButtonPressFlow: Boolean, onVibrateOnButtonPressFlow: (Boolean) -&gt; Unit, isOrWasThankYouInstalled: Boolean, onThankYou: () -&gt; Unit, isUseEnglishEnabled: Boolean, isUseEnglishChecked: Boolean, onUseEnglishPress: (Boolean) -&gt; Unit, onSetupLanguagePress: () -&gt; Unit, useCommaAsDecimalMarkFlow: Boolean, onUseCommaAsDecimalMarkFlow: (Boolean) -&gt; Unit, lockedCustomizeColorText: String, displayLanguage: String, featureLockedDialogState: AlertDialogState )</ID>
